@@ -1,0 +1,103 @@
+PROJECT LEDGER v1 — Effective 2026-08-28
+
+## 1️⃣ Vision
+Build a multi-tenant AI voice agent that can place and receive phone calls on
+behalf of several small businesses plus a personal use case, all routed by
+the phone number or assistant dialed. This repo is the Vapi.ai-specific
+sibling of voice-agent-vps (Retell edition): telephony/STT/TTS/turn-taking
+run on Vapi, and this VPS hosts only the conversation brain (an
+OpenAI-compatible Custom LLM endpoint), per-business knowledge, and the
+training loops. The system keeps learning from three sources: uploaded
+business knowledge, simulated agent-vs-agent calls, and real live callers
+(via Vapi's `end-of-call-report` webhook).
+
+## 2️⃣ Architecture
+- Telephony/STT/TTS/turn-taking: Vapi.ai (managed or Twilio-imported numbers)
+- Brain: FastAPI OpenAI-compatible endpoint (`POST /vapi/chat/completions`)
+- LLM: hybrid router — local Ollama (llama3:8b) for simple turns, cloud
+  model (GPT-5 class) for complex reasoning/booking logic
+- Knowledge: Postgres + pgvector, one `knowledge_chunks` table, isolated by
+  `namespace` per business, retrieved via RAG into the prompt every turn
+- Post-call: Vapi `end-of-call-report` webhook -> our own scorecard -> flag
+  for review -> human-approved corrections fold back into knowledge + scenarios
+- Provisioning: `app/vapi/provision.py` creates/updates one Vapi Assistant
+  per business from `config/businesses/*.yaml`, all pointing at the same
+  Custom LLM endpoint
+- Two routing modes supported: static (one assistant+number per business,
+  keyed by call.assistantId) and dynamic (`assistant-request` webhook,
+  keyed by dialed number — for the "many forwarded numbers, one Vapi
+  number" pattern)
+Full detail: docs/ARCHITECTURE.md
+
+## 3️⃣ Progress
+[2026-08-25] Original scaffold built on a self-hosted Twilio + Deepgram +
+  ElevenLabs + Ollama stack (voice-agent-vps v1).
+[2026-08-27] Rebuilt voice-agent-vps on Retell AI (v2) — Custom LLM
+  WebSocket, webhook-driven training loop.
+[2026-08-28] Forked into this new repo, voice-agent-vps-vapi: replaced
+  Retell's WebSocket protocol with Vapi's OpenAI-compatible Custom LLM
+  endpoint (`app/vapi/custom_llm.py`) and Vapi's server-event webhook
+  (`app/vapi/webhook.py`, handling `end-of-call-report` and the optional
+  `assistant-request` dynamic routing event). `app/core/reply_engine.py` is
+  provider-agnostic and reused unchanged from the Retell edition — same
+  brain, different integration shim.
+
+## 4️⃣ State
+Status: Active Development (v1 scaffold stage — no live traffic yet).
+Blockers:
+- VAPI_API_KEY, VAPI_SERVER_SECRET, and a public HTTPS domain not yet
+  provisioned (Vapi requires TLS).
+- No Vapi assistants created yet — first `provision.py` run pending.
+- No real business knowledge docs ingested yet (example YAML configs only).
+- LLMEngine currently returns one full reply per turn as a single SSE delta
+  rather than token-by-token streaming — fine for MVP, a latency
+  optimization for later.
+
+## 5️⃣ Queue
+
+### Immediate Tasks
+- Provision VAPI_API_KEY, VAPI_SERVER_SECRET, cloud LLM key, and a
+  TLS-terminated public domain
+- Stand up Postgres+pgvector and Ollama (docker compose up)
+- Run `python -m app.vapi.provision --business plumbing_co --attach-number +1...`
+  for the first real business
+- Ingest that business's real docs via `ingest_docs.py`
+- Make a real test call end-to-end; confirm `end-of-call-report` webhook
+  lands a row in `calls`
+- Run first simulation batch (`simulate_calls.py --n 20`) against that business
+- Build a minimal review-queue UI (or CLI) over the `calls` table query in docs/TRAINING.md
+
+### Next Up
+- Stream incremental SSE deltas from LLMEngine for lower latency
+- Add tool/function calling for booking/calendar via Vapi's native tool support
+- Add LLM-judge scoring to replace the keyword-heuristic in scorecard.py
+- Dashboard for `simulation_runs` + live `calls.auto_score` trend per business
+- Decide: static per-business assistant/number, or dynamic `assistant-request`
+  routing on a shared number — pick per business based on how numbers are managed
+
+### Future Tasks
+- Voice cloning via a supported provider for branded businesses (rights/
+  consent tracked in config/voices/README.md)
+- Outbound calling flow (agent-initiated calls via Vapi's outbound call API)
+- Vapi Squads for multi-assistant handoff (e.g. receptionist -> specialist)
+- Fine-tune/distill a small local model on accumulated live-call corrections
+
+## 6️⃣ Files
+- README.md — repo map + quick start
+- docs/ARCHITECTURE.md — call flow, routing modes, Vapi vs. self-hosted comparison
+- docs/TRAINING.md — three training loops, in depth
+- db/migrations/001_init.sql — Postgres + pgvector schema
+- config/businesses/*.yaml — per-business agent configs
+- app/vapi/provision.py — creates/updates Vapi assistants from config
+- app/training/simulation/scenarios/*.yaml — synthetic caller test scenarios
+- HANDOFF.md — builder-agent handoff note
+- GitHub: https://github.com/13-14all/voice-agent-vps-vapi (private)
+- Sibling repo (Retell edition): https://github.com/13-14all/voice-agent-vps (private)
+
+## 7️⃣ Handoff Notes
+See HANDOFF.md for the full builder-agent package (reading order, acceptance
+criteria, confirmation phrase). Primary reference for implementation
+questions: docs/ARCHITECTURE.md §Call flow and docs/TRAINING.md.
+
+### Last Updated
+2026-08-28 | Version 1.0 | Authored by Galaxy.ai Assistant

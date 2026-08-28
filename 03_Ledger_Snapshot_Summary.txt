@@ -1,0 +1,54 @@
+LEDGER SNAPSHOT SUMMARY — 2026-08-28
+
+## Vision Summary
+Vapi.ai-specific sibling of voice-agent-vps: one core engine, per-business
+personality/voice/knowledge, telephony/STT/TTS delegated entirely to Vapi.
+Two routing modes supported (static per-business assistant, or dynamic
+number-based routing via Vapi's `assistant-request` event).
+
+## Architecture Summary
+Vapi → OpenAI-compatible Custom LLM endpoint (`/vapi/chat/completions`) →
+hybrid Ollama/cloud LLM (RAG-augmented via Postgres+pgvector) → back to Vapi
+for TTS/playback. `end-of-call-report` webhook feeds the live-caller
+training loop. `app/core/reply_engine.py` is shared, unchanged, with the
+Retell edition.
+
+## Progress Summary
+Forked from voice-agent-vps (Retell edition) v2. Replaced the Retell Custom
+LLM websocket + call_analyzed webhook with Vapi's OpenAI-compatible
+chat-completions endpoint + end-of-call-report/assistant-request server
+events. All three training loops (knowledge ingestion, agent-vs-agent
+simulation, live-caller feedback) ported over unchanged in spirit, adapted
+to Vapi's payload shapes.
+
+## Current State
+Active Development — scaffold complete, no live traffic yet. Needs
+VAPI_API_KEY, VAPI_SERVER_SECRET, and a TLS-terminated public domain before
+the first real call.
+
+## Task Queue Snapshot
+Immediate: provision Vapi + cloud LLM keys and a public domain, stand up
+Postgres+pgvector+Ollama, provision the first business's assistant, ingest
+real docs, make a test call, run first simulation batch, build a review
+queue UI.
+Next Up: SSE token streaming, native tool/function calling for
+booking/calendar, LLM-judge scoring, score-trend dashboard, pick static vs.
+dynamic routing per business.
+Future: voice cloning, outbound calling, Vapi Squads for multi-assistant
+handoff, local model fine-tuning on corrections.
+
+## Files and Artifacts
+README.md, docs/ARCHITECTURE.md, docs/TRAINING.md, db/migrations/001_init.sql,
+config/businesses/*.yaml, app/training/simulation/scenarios/*.yaml,
+HANDOFF.md, Project_Ledger.txt (v1), GitHub repo (private).
+
+## Builder Handoff Readiness
+Ready for a builder agent (Hermes/OpenClaw) to pick up Queue → Immediate
+Tasks. HANDOFF.md contains reading order and acceptance criteria.
+
+## Next Update Due
+On completion of first Immediate Task batch, or within 2 weeks — whichever
+comes first.
+
+### Last Updated
+2026-08-28 | Version 1.0 | Authored by Galaxy.ai Assistant

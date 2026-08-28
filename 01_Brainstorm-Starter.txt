@@ -1,0 +1,21 @@
+# Brainstorm — Voice Agent VPS, Vapi edition (freeform)
+
+- Same core idea as the original brainstorm: one engine, many "agents" via
+  config, not code — voice/personality/KB/tools keyed by business.
+- Vapi's Custom LLM is OpenAI-compatible, which is the whole appeal here —
+  no bespoke websocket protocol to learn (contrast with Retell's Custom LLM
+  websocket in the sibling repo). If you already have OpenAI-shaped code,
+  porting it onto Vapi is nearly free.
+- The original ask — "multiple virtual phone numbers forwarded to one agent
+  number, with voice and knowledgebase determined by forwarding number" —
+  maps directly onto Vapi's `assistant-request` server event. Implemented as
+  the "dynamic routing" mode alongside the simpler "one number per business"
+  static mode.
+- Open questions to revisit:
+  - Static vs. dynamic routing per business — probably static while there
+    are only a handful of businesses, switch to dynamic once phone number
+    management across providers gets annoying.
+  - Streaming token-by-token responses vs. one-shot replies — one-shot is
+    simpler and good enough for MVP; revisit if perceived latency matters.
+  - Whether to eventually use Vapi Squads (multi-assistant handoff) for
+    businesses that need a receptionist -> specialist flow.

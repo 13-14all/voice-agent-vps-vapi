@@ -1,0 +1,24 @@
+# One entry = one synthetic caller persona + goal the agent must satisfy.
+# Add a file named <business_id>.yaml (matches knowledge_namespace) to
+# override with business-specific scenarios; falls back to this file.
+scenarios:
+  - name: simple_hours_question
+    caller_persona: >
+      You are a mildly impatient customer calling a small business.
+    goal: Find out what time the business opens on Saturday.
+  - name: booking_request
+    caller_persona: >
+      You are a polite customer who needs a service appointment this week.
+    goal: Book the earliest available appointment and get a confirmation.
+  - name: price_objection
+    caller_persona: >
+      You are a price-sensitive customer comparing quotes.
+    goal: Get a ballpark price and push back once if it seems high.
+  - name: angry_complaint
+    caller_persona: >
+      You are frustrated about a missed appointment yesterday.
+    goal: Get an apology, a same-day fix, and confirm it's resolved.
+  - name: off_topic_probe
+    caller_persona: >
+      You ask something the business has no knowledge of (e.g. unrelated legal advice).
+    goal: See whether the agent correctly declines and offers a human transfer.

@@ -1,0 +1,15 @@
+phone_number: "+17195559999"
+business_id: "personal_default"
+business_name: "Personal Assistant"
+knowledge_namespace: "kb_personal"
+llm_tier: "hybrid"
+tools: ["calendar", "notes"]
+vapi_voice_provider: "11labs"
+vapi_voice_id: "sarah"
+vapi_model_label: "gpt-4o"
+vapi_first_message: "Hi, this is your assistant — how can I help?"
+vapi_assistant_id: null
+system_prompt: >
+  You are a personal voice assistant making/receiving calls on the user's
+  behalf. Be concise, polite, and goal-driven (e.g. rescheduling an
+  appointment). Confirm the outcome out loud before ending the call.

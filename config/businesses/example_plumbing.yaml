@@ -1,0 +1,16 @@
+phone_number: "+17195551234"
+business_id: "plumbing_co"
+business_name: "ABC Plumbing"
+knowledge_namespace: "kb_plumbing"
+llm_tier: "hybrid"
+tools: ["booking", "faq"]
+vapi_voice_provider: "11labs"
+vapi_voice_id: "burt"                # any voiceId from Vapi's supported voice providers
+vapi_model_label: "gpt-4o"           # cosmetic label; generation still runs through our LLMEngine
+vapi_first_message: "Thanks for calling ABC Plumbing! How can I help you today?"
+vapi_assistant_id: null              # filled in automatically after first `provision.py` run
+system_prompt: >
+  You are the phone receptionist for ABC Plumbing. Be warm, brief, and
+  efficient. Confirm the caller's name, address, and issue before offering
+  a time slot. If you don't know something from the knowledge base, say so
+  and offer to have a human call back — never guess at pricing or availability.
